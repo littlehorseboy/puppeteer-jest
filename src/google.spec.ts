@@ -1,6 +1,6 @@
 import { launch, Browser, Page } from 'puppeteer';
 
-describe('Google 首頁進行搜尋 horse', () => {
+xdescribe('Google 首頁進行搜尋 horse', () => {
   let browser: Browser;
   let page: Page;
 
@@ -24,9 +24,9 @@ describe('Google 首頁進行搜尋 horse', () => {
     const input = await page.$('#tsf > div:nth-child(2) > div.A8SBwf > div.RNNXgb > div > div.a4bIc > input');
     await input?.type('horse');
 
-    const titleValue = await page.evaluate((el: HTMLInputElement) => el.value, input);
+    const inputValue = await page.evaluate((el: HTMLInputElement) => el.value, input);
 
-    await expect(titleValue).toBe('horse');
+    await expect(inputValue).toBe('horse');
   });
 
   test('成功輸入後，按下 enter，到搜尋結果的頁面，測試看看有沒有翻譯出 "馬"', async () => {
