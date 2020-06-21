@@ -1,4 +1,5 @@
 import { launch, Browser, Page } from 'puppeteer';
+import { isSameDay } from 'date-fns';
 
 describe('登入後操作表單', () => {
   let browser: Browser;
@@ -6,8 +7,8 @@ describe('登入後操作表單', () => {
 
   beforeAll(async () => {
     browser = await launch({
-      headless: true,
-      slowMo: 50,
+      headless: false,
+      slowMo: 100,
     });
     page = await browser.newPage();
 
@@ -57,13 +58,15 @@ describe('登入後操作表單', () => {
     const table = await page.$('app-root > app-record > div:nth-child(5) > p-table > div > div > table');
 
     if (table) {
-      const tableJSObject = await page.evaluate(
+      const tableRows = await page.evaluate(
         async (selector) => {
           const tableEl = document.querySelector(selector);
           
           const trList = tableEl.querySelectorAll('tbody > tr');
 
-          const data = Array.prototype.map.call(trList, (tr: HTMLTableRowElement) => ({
+          const data: {
+            date: string; time: string; periodsOfTheDay: 'morning' | 'afternoon';
+          }[] = Array.prototype.map.call(trList, (tr: HTMLTableRowElement) => ({
             date: tr.children[0].textContent,
             time: tr.children[1].textContent,
             periodsOfTheDay: tr.children[2].textContent,
@@ -74,8 +77,45 @@ describe('登入後操作表單', () => {
         'app-root > app-record > div:nth-child(5) > p-table > div > div > table',
         { cache: 'no-cache' },
       );
+
+      const lastTableRow = tableRows.reverse().find(() => Boolean);
+
+      const year = lastTableRow.date.slice(0, 4);
+      const month = lastTableRow.date.slice(4, 6);
+      const date = lastTableRow.date.slice(6, 8);
+      const hour = lastTableRow.time.slice(0, 2);
+      const minute = lastTableRow.time.slice(2, 4);
+
+      const formattedLastTableRow: { date: Date; periodsOfTheDay: 'morning' | 'afternoon' } = {
+        date: new Date(`${year}-${month}-${date} ${hour}:${minute}`),
+        periodsOfTheDay: lastTableRow.periodsOfTheDay,
+      };
+
+      if (isSameDay(new Date(), formattedLastTableRow.date)) {
+        if (formattedLastTableRow.periodsOfTheDay === 'morning') {
+          await page.evaluate(
+            async (selector) => {
+              const radioButton = document.querySelector(selector);
+
+              return radioButton.click();
+            },
+            'body > app-root > app-record > div:nth-child(2) > p-radiobutton > div > div.ui-helper-hidden-accessible > input[type=radio]',
+            { cache: 'no-cache' },
+          );
+        } else {
+          await page.evaluate(
+            async (selector) => {
+              const radioButton = document.querySelector(selector);
+
+              return radioButton.click();
+            },
+            'body > app-root > app-record > div:nth-child(2) > p-radiobutton > div > div.ui-helper-hidden-accessible > input[type=radio]',
+            { cache: 'no-cache' },
+          );
+        }
+      }
   
-      console.log(tableJSObject);
+      expect(table).not.toBeNull();
     } else {
       expect(table).toBeNull();
     }
