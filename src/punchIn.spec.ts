@@ -94,25 +94,20 @@ describe('登入後操作表單', () => {
       if (isSameDay(new Date(), formattedLastTableRow.date)) {
         if (formattedLastTableRow.periodsOfTheDay === 'morning') {
           await page.evaluate(
-            async (selector) => {
-              const radioButton = document.querySelector(selector);
-
-              return radioButton.click();
-            },
+            (selector) => document.querySelector(selector).click(),
             'body > app-root > app-record > div:nth-child(2) > p-radiobutton > div > div.ui-helper-hidden-accessible > input[type=radio]',
-            { cache: 'no-cache' },
           );
         } else {
           await page.evaluate(
-            async (selector) => {
-              const radioButton = document.querySelector(selector);
-
-              return radioButton.click();
-            },
+            (selector) => document.querySelector(selector).click(),
             'body > app-root > app-record > div:nth-child(2) > p-radiobutton > div > div.ui-helper-hidden-accessible > input[type=radio]',
-            { cache: 'no-cache' },
           );
         }
+      } else {
+        await page.evaluate(
+          (selector) => document.querySelector(selector).click(),
+          'body > app-root > app-record > div:nth-child(2) > p-radiobutton > div > div.ui-helper-hidden-accessible > input[type=radio]',
+        );
       }
   
       expect(table).not.toBeNull();
